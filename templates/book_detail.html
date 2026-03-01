@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ book.title }} - BookBridge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .book-images {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .main-image {
+            width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            border-radius: 15px;
+            background: #f8f9fa;
+        }
+        .thumbnail-grid {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .thumbnail {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .thumbnail:hover, .thumbnail.active {
+            border-color: #667eea;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .wishlist-btn-large {
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+    <script>
+        function changeImage(src) {
+            document.getElementById('mainImage').src = src;
+            document.querySelectorAll('.thumbnail').forEach(thumb => {
+                thumb.classList.remove('active');
+                if (thumb.src === src) thumb.classList.add('active');
+            });
+        }
+    </script>
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📚 BookBridge</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/recommendations">📖 Recommendations</a>
+        <a href="/location">📍 By Location</a>
+        <a href="/news">📰 News</a>
+        {% if current_user.is_authenticated %}
+            <a href="/chat">💬 AI Chat</a>
+            <a href="/wishlist">❤️ Wishlist</a>
+            <a href="/conversations">💬 Messages</a>
+            <a href="/profile">👤 Profile</a>
+            {% if current_user.is_admin or current_user.id == book.user_id %}
+                <a href="{{ url_for('edit_book', id=book.id) }}">✏️ Edit</a>
+            {% endif %}
+            {% if current_user.is_admin or current_user.id == book.user_id %}
+                <a href="{{ url_for('delete_book', id=book.id) }}" onclick="return confirm('Are you sure?')">🗑️ Delete</a>
+            {% endif %}
+            <a href="/logout">Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container">
+    <!-- Book Images -->
+    <div class="book-images">
+        {% if book.image_url %}
+            <img id="mainImage" src="{{ url_for('static', filename='uploads/books/' + book.image_url) }}" alt="{{ book.title }}" class="main-image">
+            {% if additional_images %}
+            <div class="thumbnail-grid">
+                <img src="{{ url_for('static', filename='uploads/books/' + book.image_url) }}" alt="{{ book.title }}" class="thumbnail active" onclick="changeImage(this.src)">
+                {% for img in additional_images %}
+                <img src="{{ url_for('static', filename='uploads/books/' + img) }}" alt="{{ book.title }}" class="thumbnail" onclick="changeImage(this.src)">
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="main-image" style="display: flex; align-items: center; justify-content: center; font-size: 5rem; min-height: 300px;">
+                📚
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="book-detail">
+        <div class="book-main-info">
+            <h1>{{ book.title }}</h1>
+            <p class="author">by {{ book.author }}</p>
+            
+            <div class="rating-large">
+                {% if avg_rating > 0 %}
+                    <span class="stars">
+                        {% for i in range(5) %}
+                            {% if i < avg_rating|int %}★{% else %}☆{% endif %}
+                        {% endfor %}
+                    </span>
+                    <span class="rating-text">{{ avg_rating }} ({{ num_reviews }} reviews)</span>
+                {% else %}
+                    <span class="no-rating">No reviews yet</span>
+                {% endif %}
+            </div>
+            
+            <div class="book-badges">
+                <span class="badge badge-{{ 'sell' if book.type == 'sell' else 'rent' }}">
+                    {{ '💰 For Sale' if book.type == 'sell' else '📅 For Rent' }}
+                </span>
+                {% if book.subject %}
+                    <span class="subject-badge">{{ book.subject }}</span>
+                {% endif %}
+                {% if book.grade %}
+                    <span class="grade-badge">🎓 {{ book.grade }}</span>
+                {% endif %}
+                {% if book.condition %}
+                    <span class="condition-badge">📖 {{ book.condition }}</span>
+                {% endif %}
+            </div>
+            
+            <p class="price-large">₹ {{ book.price }}</p>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.id != book.user_id %}
+                        {% if in_wishlist %}
+                            <a href="{{ url_for('remove_from_wishlist', book_id=book.id) }}" class="btn btn-danger wishlist-btn-large">❤️ In Wishlist</a>
+                        {% else %}
+                            <a href="{{ url_for('add_to_wishlist', book_id=book.id) }}" class="btn btn-primary wishlist-btn-large">🤍 Add to Wishlist</a>
+                        {% endif %}
+                        
+                        {% if has_conversation %}
+                            <a href="{{ url_for('conversation_detail', conversation_id=1) }}" class="btn btn-primary wishlist-btn-large">💬 View Messages</a>
+                        {% else %}
+                            <a href="{{ url_for('message_seller', book_id=book.id) }}" class="btn btn-primary wishlist-btn-large">💬 Message Seller</a>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('login', next=url_for('book_detail', book_id=book.id)) }}" class="btn btn-primary wishlist-btn-large">💬 Message Seller</a>
+                    <a href="{{ url_for('login', next=url_for('book_detail', book_id=book.id)) }}" class="btn btn-secondary wishlist-btn-large">🤍 Add to Wishlist</a>
+                {% endif %}
+            </div>
+            
+            <div class="book-details-grid">
+                <div class="detail-item">
+                    <strong>📍 Location</strong>
+                    <p>{{ book.location }}{% if book.city %}, {{ book.city }}{% endif %}</p>
+                </div>
+                <div class="detail-item">
+                    <strong>📅 Posted</strong>
+                    <p>{{ book.created_at.strftime('%Y-%m-%d') }}</p>
+                </div>
+                <div class="detail-item">
+                    <strong>👤 Seller</strong>
+                    <p>{{ book.owner.username }}{% if book.owner.city %}, {{ book.owner.city }}{% endif %}</p>
+                </div>
+                {% if book.description %}
+                <div class="detail-item full-width">
+                    <strong>📝 Description</strong>
+                    <p>{{ book.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- REVIEWS SECTION -->
+    <div class="reviews-section">
+        <h2>⭐ Reviews & Ratings</h2>
+        
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('add_review', book_id=book.id) }}" class="btn btn-secondary">✍️ Write a Review</a>
+        {% else %}
+            <p><a href="{{ url_for('login', next=url_for('book_detail', book_id=book.id)) }}">Login</a> to write a review</p>
+        {% endif %}
+        
+        {% if reviews %}
+            <div class="reviews-list">
+                {% for review in reviews %}
+                    <div class="review-card">
+                        <div class="review-header">
+                            <strong>{{ review.user.username }}</strong>
+                            <span class="stars">
+                                {% for i in range(5) %}
+                                    {% if i < review.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            </span>
+                            <span class="review-date">{{ review.created_at.strftime('%Y-%m-%d') }}</span>
+                        </div>
+                        <p>{{ review.comment }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-reviews">No reviews yet. Be the first to review!</p>
+        {% endif %}
+    </div>
+    
+    <!-- RELATED BOOKS -->
+    {% if related_books %}
+    <div class="related-books">
+        <h2>📚 Related Books</h2>
+        <div class="book-grid">
+            {% for related_book in related_books %}
+                <div class="card">
+                    {% if related_book.image_url %}
+                    <div class="book-image-container">
+                        <img src="{{ url_for('static', filename='uploads/books/' + related_book.image_url) }}" alt="{{ related_book.title }}" class="book-image">
+                    </div>
+                    {% else %}
+                    <div class="book-image-container">
+                        <div class="no-image">📚</div>
+                    </div>
+                    {% endif %}
+                    <span class="badge badge-{{ 'sell' if related_book.type == 'sell' else 'rent' }}">
+                        {{ '💰 Sell' if related_book.type == 'sell' else '📅 Rent' }}
+                    </span>
+                    <h3>{{ related_book.title }}</h3>
+                    <p class="author">by {{ related_book.author }}</p>
+                    <p>📍 {{ related_book.location }}</p>
+                    <p class="price">₹ {{ related_book.price }}</p>
+                    <a href="{{ url_for('book_detail', book_id=related_book.id) }}" class="btn btn-primary">View</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<footer>
+    <p>📚 BookBridge - Connecting Students with Books</p>
+</footer>
+
+</body>
+</html>

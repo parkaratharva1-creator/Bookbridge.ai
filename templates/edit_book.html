@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Book - BookBridge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📚 BookBridge</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/profile">Profile</a>
+        <a href="/wishlist">❤️ Wishlist</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="form-container">
+        <h2>✏️ Edit Book</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" enctype="multipart/form-data" class="book-form">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                <label>Book Image (optional - leave empty to keep current)</label>
+                {{ form.image(class="form-control", accept="image/*") }}
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.title.label }}
+                    {{ form.title(class="form-control") }}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.author.label }}
+                    {{ form.author(class="form-control") }}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.price.label }}
+                    {{ form.price(class="form-control") }}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.location.label }}
+                    {{ form.location(class="form-control") }}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.city.label }}
+                    {{ form.city(class="form-control") }}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.type.label }}
+                    {{ form.type(class="form-control") }}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.subject.label }}
+                    {{ form.subject(class="form-control") }}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.grade.label }}
+                    {{ form.grade(class="form-control") }}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.condition.label }}
+                    {{ form.condition(class="form-control") }}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                {{ form.description.label }}
+                {{ form.description(class="form-control", rows=4) }}
+            </div>
+            
+            {{ form.submit(class="btn btn-primary btn-large") }}
+            <a href="{{ url_for('book_detail', book_id=book.id) }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+
+<footer>
+    <p>📚 BookBridge</p>
+</footer>
+
+</body>
+</html>

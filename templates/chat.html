@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Chat - BookBridge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        .message-user {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .message-ai {
+            background: #28a745;
+            color: white;
+        }
+        .message-time {
+            font-size: 0.7em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        .chat-form {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-form input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .chat-tip {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📚 BookBridge</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/recommendations">📖 Recommendations</a>
+        <a href="/location">📍 By Location</a>
+        <a href="/news">📰 News</a>
+        <a href="/wishlist">❤️ Wishlist</a>
+        <a href="/conversations">💬 Messages</a>
+        <a href="/profile">👤 Profile</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="chat-container">
+        <h2>🤖 AI Study Assistant</h2>
+        
+        <div class="chat-tip">
+            <strong>💡 Tips:</strong> Ask me about finding books, study recommendations, 
+            exam preparation, prices, or any questions about using BookBridge!
+        </div>
+        
+        <div class="chat-messages">
+            {% if not messages %}
+                <div class="message message-ai">
+                    Hello! I'm your AI study assistant. Ask me anything about books, 
+                    study materials, exams, or how to use BookBridge! 📚
+                    <div class="message-time">System</div>
+                </div>
+            {% else %}
+                {% for msg in messages %}
+                    <div class="message {% if msg.is_from_ai %}message-ai{% else %}message-user{% endif %}">
+                        {{ msg.message }}
+                        <div class="message-time">{{ msg.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <form method="POST" class="chat-form">
+            <input type="text" name="message" placeholder="Type your question here..." required autocomplete="off">
+            <button type="submit" class="btn btn-primary">Send</button>
+        </form>
+        
+        <div class="quick-questions">
+            <p><strong>Quick Questions:</strong></p>
+            <a href="#" onclick="document.querySelector('input[name=message]').value='How do I find books for JEE preparation?'; return false;">📚 JEE Books</a>
+            <a href="#" onclick="document.querySelector('input[name=message]').value='Which books are best for Class 11 Physics?'; return false;">📖 Class 11 Physics</a>
+            <a href="#" onclick="document.querySelector('input[name=message]').value='How to sell my books?'; return false;">💰 Sell Books</a>
+            <a href="#" onclick="document.querySelector('input[name=message]').value='What are the best books for UPSC?'; return false;">🏆 UPSC Books</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>📚 BookBridge - AI-Powered Study Assistant</p>
+</footer>
+
+</body>
+</html>

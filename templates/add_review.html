@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Write Review - BookBridge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📚 BookBridge</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/profile">Profile</a>
+        <a href="/wishlist">❤️ Wishlist</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="form-container">
+        <h2>✍️ Write a Review</h2>
+        <p>for <strong>{{ book.title }}</strong> by {{ book.author }}</p>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.rating.label }}
+                {{ form.rating(class="form-control") }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.comment.label }}
+                {{ form.comment(class="form-control", placeholder="Share your experience with this book...", rows=5) }}
+            </div>
+            
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('book_detail', book_id=book.id) }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

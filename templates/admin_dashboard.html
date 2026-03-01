@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard - BookBridge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .stat-card h2 {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        .admin-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .table th {
+            background: #667eea;
+            color: white;
+        }
+        .badge-admin {
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+        .badge-banned {
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+        .badge-active {
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+        .action-btn {
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-right: 5px;
+        }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .chart-box {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📚 BookBridge - Admin</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/admin">Dashboard</a>
+        <a href="/admin/add_news">📰 Add News</a>
+        <a href="/profile">Profile</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <h1>🔧 Admin Dashboard</h1>
+    
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <p>📚 Total Books</p>
+            <h2>{{ total_books }}</h2>
+        </div>
+        <div class="stat-card">
+            <p>👥 Total Users</p>
+            <h2>{{ total_users }}</h2>
+        </div>
+        <div class="stat-card">
+            <p>⭐ Total Reviews</p>
+            <h2>{{ total_reviews }}</h2>
+        </div>
+        <div class="stat-card">
+            <p>💬 AI Messages</p>
+            <h2>{{ total_messages }}</h2>
+        </div>
+    </div>
+    
+    <!-- Charts / Statistics -->
+    <div class="charts-grid">
+        <div class="chart-box">
+            <h3>📍 Books by City</h3>
+            {% if books_by_city %}
+            <table class="table">
+                <tr><th>City</th><th>Books</th></tr>
+                {% for city, count in books_by_city %}
+                <tr><td>{{ city or 'Unknown' }}</td><td>{{ count }}</td></tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>No data</p>
+            {% endif %}
+        </div>
+        
+        <div class="chart-box">
+            <h3>📚 Books by Category</h3>
+            {% if books_by_subject %}
+            <table class="table">
+                <tr><th>Category</th><th>Books</th></tr>
+                {% for subject, count in books_by_subject %}
+                <tr><td>{{ subject or 'Unknown' }}</td><td>{{ count }}</td></tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>No data</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- User Management -->
+    <div class="admin-section">
+        <h3>👥 User Management</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>City</th>
+                    <th>College</th>
+                    <th>Status</th>
+                    <th>Seller Rating</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in all_users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.city or '-' }}</td>
+                    <td>{{ user.college or '-' }}</td>
+                    <td>
+                        {% if user.is_admin %}
+                            <span class="badge-admin">Admin</span>
+                        {% elif user.is_banned %}
+                            <span class="badge-banned">Banned</span>
+                        {% else %}
+                            <span class="badge-active">Active</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.seller_rating_count > 0 %}
+                            ⭐ {{ "%.1f"|format(user.seller_rating) }} ({{ user.seller_rating_count }})
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not user.is_admin %}
+                            <a href="{{ url_for('admin_ban_user', user_id=user.id) }}" class="action-btn {% if user.is_banned %}btn-success{% else %}btn-danger{% endif %}" onclick="return confirm('Are you sure?')">
+                                {% if user.is_banned %}Unban{% else %}Ban{% endif %}
+                            </a>
+                            <a href="{{ url_for('admin_delete_user', user_id=user.id) }}" class="action-btn btn-danger" onclick="return confirm('Delete this user? This will delete all their books and messages!')">Delete</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Recent Books -->
+    <div class="admin-section">
+        <h3>📚 Recent Books</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Price</th>
+                    <th>City</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in recent_books %}
+                <tr>
+                    <td>{{ book.id }}</td>
+                    <td>{{ book.title }}</td>
+                    <td>{{ book.author }}</td>
+                    <td>₹{{ book.price }}</td>
+                    <td>{{ book.city or '-' }}</td>
+                    <td>{{ book.type }}</td>
+                    <td>
+                        <a href="{{ url_for('book_detail', book_id=book.id) }}" class="action-btn btn-info">View</a>
+                        <a href="{{ url_for('admin_delete_book', book_id=book.id) }}" class="action-btn btn-danger" onclick="return confirm('Delete this book?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Recent Reviews -->
+    <div class="admin-section">
+        <h3>⭐ Recent Reviews</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Book</th>
+                    <th>User</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in recent_reviews %}
+                <tr>
+                    <td>{{ review.id }}</td>
+                    <td>{{ review.book.title }}</td>
+                    <td>{{ review.user.username }}</td>
+                    <td>{{ review.rating }}/5</td>
+                    <td>{{ review.comment[:50] }}...</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="admin-section">
+        <h3>⚡ Quick Actions</h3>
+        <a href="/admin/add_news" class="btn btn-primary">➕ Add News</a>
+        <a href="/news" class="btn btn-secondary">📰 View News</a>
+        <a href="/" class="btn btn-secondary">🏠 Go to Home</a>
+    </div>
+</div>
+
+<footer>
+    <p>📚 BookBridge Admin Panel</p>
+</footer>
+
+</body>
+</html>

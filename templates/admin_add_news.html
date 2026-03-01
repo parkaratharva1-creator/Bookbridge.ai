@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add News - BookBridge Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📚 BookBridge - Admin</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/admin">Dashboard</a>
+        <a href="/profile">Profile</a>
+        <a href="/wishlist">❤️ Wishlist</a>
+        <a href="/conversations">💬 Messages</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="form-container">
+        <h2>➕ Add News</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.title.label }}
+                {{ form.title(class="form-control") }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.category.label }}
+                {{ form.category(class="form-control") }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.content.label }}
+                {{ form.content(class="form-control", rows=6) }}
+            </div>
+            
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="/admin" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+
+<footer>
+    <p>📚 BookBridge - Admin</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Conversation - BookBridge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .conversation-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .chat-messages {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .message {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 15px;
+            max-width: 70%;
+        }
+        .message.sent {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        .message.received {
+            background: #f0f0f0;
+            color: #333;
+            border-bottom-left-radius: 5px;
+        }
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        .message-input {
+            display: flex;
+            gap: 10px;
+        }
+        .message-input textarea {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            resize: none;
+            font-family: inherit;
+        }
+        .message-input textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .book-info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .rating-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .rating-box h4 {
+            margin: 0 0 10px 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📚 BookBridge</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/conversations">💬 Messages</a>
+        <a href="/profile">Profile</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="conversation-container">
+        <!-- Book Info -->
+        <div class="book-info-box">
+            <h3>{{ conversation.book.title }}</h3>
+            <p>by {{ conversation.book.author }} | ₹{{ conversation.book.price }}</p>
+            <a href="{{ url_for('book_detail', book_id=conversation.book.id) }}" style="color: white; text-decoration: underline;">View Book</a>
+        </div>
+        
+        <!-- Other User Info -->
+        <div class="user-info">
+            <div class="user-avatar">{{ other_user.username[0].upper() }}</div>
+            <div>
+                <h3>{{ other_user.username }}</h3>
+                <p>📍 {{ other_user.city or 'Not specified' }}</p>
+                {% if other_user.seller_rating_count > 0 %}
+                    <p>⭐ Seller Rating: {{ "%.1f"|format(other_user.seller_rating) }} ({{ other_user.seller_rating_count }} ratings)</p>
+                {% else %}
+                    <p>⭐ No ratings yet</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Rating Form for Buyer -->
+        {% if can_rate %}
+        <div class="rating-box">
+            <h4>⭐ Rate this Seller</h4>
+            <p>How was your experience with this seller?</p>
+            <form method="POST">
+                {{ rating_form.hidden_tag() }}
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    {{ rating_form.rating(class="form-control", style="width: 200px;") }}
+                    {{ rating_form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+        {% endif %}
+        
+        {% if conversation.buyer_rating %}
+        <div class="rating-box" style="background: #d4edda; border-color: #28a745;">
+            <h4>✅ You rated this seller: {{ conversation.buyer_rating }}/5 stars</h4>
+        </div>
+        {% endif %}
+        
+        <!-- Messages -->
+        <div class="chat-messages">
+            {% for msg in messages %}
+                <div class="message {% if msg.sender_id == current_user.id %}sent{% else %}received{% endif %}">
+                    <strong>{% if msg.sender_id == current_user.id %}You{% else %}{{ other_user.username }}{% endif %}:</strong>
+                    <p>{{ msg.message }}</p>
+                    <div class="message-time">{{ msg.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Message Input -->
+        <form method="POST" class="message-input">
+            {{ form.hidden_tag() }}
+            {{ form.message(rows=3, placeholder="Type your message...") }}
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+        
+        <div style="margin-top: 20px;">
+            <a href="{{ url_for('conversations') }}" class="btn btn-secondary">← Back to Messages</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>📚 BookBridge</p>
+</footer>
+
+</body>
+</html>

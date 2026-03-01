@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile - BookBridge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        .profile-avatar {
+            font-size: 4rem;
+            background: white;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-info h2 {
+            margin-bottom: 10px;
+        }
+        .profile-info p {
+            margin: 5px 0;
+            opacity: 0.9;
+        }
+        .profile-actions {
+            margin-top: 20px;
+        }
+        .profile-actions .btn {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📚 BookBridge</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/recommendations">📖 Recommendations</a>
+        <a href="/location">📍 By Location</a>
+        <a href="/news">📰 News</a>
+        <a href="/chat">💬 AI Chat</a>
+        {% if current_user.is_admin %}
+            <a href="/admin" class="admin-link">⚙️ Admin</a>
+        {% endif %}
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {% if current_user.profile_image %}
+                <img src="{{ url_for('static', filename='uploads/profiles/' + current_user.profile_image) }}" alt="{{ current_user.username }}">
+            {% else %}
+                👤
+            {% endif %}
+        </div>
+        <div class="profile-info">
+            <h2>{{ current_user.username }}</h2>
+            <p>📧 {{ current_user.email }}</p>
+            {% if current_user.phone %}
+                <p>📱 {{ current_user.phone }}</p>
+            {% endif %}
+            {% if current_user.city %}
+                <p>📍 {{ current_user.city }}</p>
+            {% endif %}
+            {% if current_user.college %}
+                <p>🎓 {{ current_user.college }}</p>
+            {% endif %}
+            {% if current_user.bio %}
+                <p style="margin-top: 10px; font-style: italic;">{{ current_user.bio }}</p>
+            {% endif %}
+            <p>📅 Member since: {{ current_user.created_at.strftime('%Y-%m-%d') }}</p>
+            <div class="profile-actions">
+                <a href="#" onclick="document.getElementById('editProfile').style.display='block'; return false;" class="btn btn-secondary">✏️ Edit Profile</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Profile Form (Hidden by default) -->
+    <div id="editProfile" style="display: none; background: #f8f9fa; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+        <h3>✏️ Edit Profile</h3>
+        <form method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="form-control") }}
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.phone.label }}
+                    {{ form.phone(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.city.label }}
+                    {{ form.city(class="form-control") }}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                {{ form.college.label }}
+                {{ form.college(class="form-control") }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.bio.label }}
+                {{ form.bio(class="form-control", rows=3) }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.profile_image.label }}
+                {{ form.profile_image(class="form-control") }}
+            </div>
+            
+            {{ form.submit(class="btn btn-primary") }}
+            <button type="button" onclick="document.getElementById('editProfile').style.display='none';" class="btn btn-secondary">Cancel</button>
+        </form>
+    </div>
+    
+    <!-- Quick Links -->
+    <div style="display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap;">
+        <a href="/wishlist" class="btn btn-primary">❤️ My Wishlist</a>
+        <a href="/conversations" class="btn btn-primary">💬 My Messages</a>
+        <a href="/add" class="btn btn-primary">➕ Add New Book</a>
+    </div>
+    
+    <!-- User's Books -->
+    <div class="profile-section">
+        <h3>📚 My Books ({{ books|length }})</h3>
+        
+        {% if books %}
+            <div class="book-grid">
+            {% for book in books %}
+                <div class="card">
+                    <div class="card-header">
+                        <span class="badge badge-{{ 'sell' if book.type == 'sell' else 'rent' }}">
+                            {{ '💰 Sell' if book.type == 'sell' else '📅 Rent' }}
+                        </span>
+                        {% if book.image_url %}
+                        <span class="has-image">📷</span>
+                        {% endif %}
+                    </div>
+                    {% if book.image_url %}
+                    <div class="book-image-container">
+                        <img src="{{ url_for('static', filename='uploads/books/' + book.image_url) }}" alt="{{ book.title }}" class="book-image">
+                    </div>
+                    {% else %}
+                    <div class="book-image-container">
+                        <div class="no-image">📚</div>
+                    </div>
+                    {% endif %}
+                    <h3>{{ book.title }}</h3>
+                    <p class="author">by {{ book.author }}</p>
+                    <p>📍 {{ book.location }}</p>
+                    <p class="price">₹ {{ book.price }}</p>
+                    <div class="card-actions">
+                        <a href="{{ url_for('book_detail', book_id=book.id) }}" class="btn btn-secondary">View</a>
+                        <a href="{{ url_for('edit_book', id=book.id) }}" class="btn btn-secondary">Edit</a>
+                        <a href="{{ url_for('delete_book', id=book.id) }}" class="btn btn-danger" onclick="return confirm('Delete this book?')">Delete</a>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>You haven't listed any books yet.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Wishlist Preview -->
+    {% if wishlist_books %}
+    <div class="profile-section">
+        <h3>❤️ Wishlist ({{ wishlist_books|length }})</h3>
+        <div class="book-grid">
+        {% for book in wishlist_books[:4] %}
+            <div class="card">
+                {% if book.image_url %}
+                <div class="book-image-container">
+                    <img src="{{ url_for('static', filename='uploads/books/' + book.image_url) }}" alt="{{ book.title }}" class="book-image">
+                </div>
+                {% else %}
+                <div class="book-image-container">
+                    <div class="no-image">📚</div>
+                </div>
+                {% endif %}
+                <h3>{{ book.title }}</h3>
+                <p class="price">₹ {{ book.price }}</p>
+                <a href="{{ url_for('book_detail', book_id=book.id) }}" class="btn btn-secondary">View</a>
+            </div>
+        {% endfor %}
+        </div>
+        {% if wishlist_books|length > 4 %}
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/wishlist" class="btn btn-primary">View All ({{ wishlist_books|length }})</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- Conversations Preview -->
+    {% if conversations %}
+    <div class="profile-section">
+        <h3>💬 Recent Messages ({{ conversations|length }})</h3>
+        <div class="book-grid">
+        {% for conv in conversations[:4] %}
+            <div class="card">
+                <h3>{% if conv.buyer_id == current_user.id %}📤{% else %}📥{% endif %} {{ conv.book.title }}</h3>
+                <p>{% if conv.buyer_id == current_user.id %}Buyer{% else %}Seller{% endif %}: {{ conv.buyer.username if conv.buyer_id != current_user.id else conv.seller.username }}</p>
+                <p>₹ {{ conv.book.price }}</p>
+                <a href="{{ url_for('conversation_detail', conversation_id=conv.id) }}" class="btn btn-primary">View Chat</a>
+            </div>
+        {% endfor %}
+        </div>
+        {% if conversations|length > 4 %}
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/conversations" class="btn btn-primary">View All Messages</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- User's Reviews -->
+    <div class="profile-section">
+        <h3>⭐ My Reviews ({{ reviews|length }})</h3>
+        
+        {% if reviews %}
+            <div class="reviews-list">
+            {% for review in reviews %}
+                <div class="review-card">
+                    <div class="review-header">
+                        <strong>{{ review.book.title }}</strong>
+                        <span class="stars">
+                            {% for i in range(5) %}
+                                {% if i < review.rating %}★{% else %}☆{% endif %}
+                            {% endfor %}
+                        </span>
+                        <span class="review-date">{{ review.created_at.strftime('%Y-%m-%d') }}</span>
+                    </div>
+                    <p>{{ review.comment }}</p>
+                    <a href="{{ url_for('book_detail', book_id=review.book_id) }}" class="btn btn-secondary">View Book</a>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p>You haven't written any reviews yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<footer>
+    <p>📚 BookBridge - Your Profile</p>
+</footer>
+
+</body>
+</html>

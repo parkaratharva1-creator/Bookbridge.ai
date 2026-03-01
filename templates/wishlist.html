@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Wishlist - BookBridge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📚 BookBridge</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/recommendations">📖 Recommendations</a>
+        <a href="/location">📍 By Location</a>
+        <a href="/news">📰 News</a>
+        <a href="/chat">💬 AI Chat</a>
+        <a href="/profile">👤 Profile</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <h2>❤️ My Wishlist</h2>
+    
+    {% if books %}
+        <div class="book-grid">
+        {% for item in books %}
+            <div class="card">
+                <div class="card-header">
+                    <span class="badge badge-{{ 'sell' if item.book.type == 'sell' else 'rent' }}">
+                        {{ '💰 Sell' if item.book.type == 'sell' else '📅 Rent' }}
+                    </span>
+                    {% if item.book.subject %}
+                        <span class="subject-badge">{{ item.book.subject }}</span>
+                    {% endif %}
+                </div>
+                {% if item.book.image_url %}
+                <div class="book-image-container">
+                    <img src="{{ url_for('static', filename='uploads/books/' + item.book.image_url) }}" alt="{{ item.book.title }}" class="book-image">
+                </div>
+                {% else %}
+                <div class="book-image-container">
+                    <div class="no-image">📚</div>
+                </div>
+                {% endif %}
+                <h3>{{ item.book.title }}</h3>
+                <p class="author">by {{ item.book.author }}</p>
+                <div class="book-info">
+                    <p>📍 {{ item.book.location }}</p>
+                    {% if item.book.grade %}
+                        <p>🎓 {{ item.book.grade }}</p>
+                    {% endif %}
+                </div>
+                <div class="rating">
+                    {% if item.avg_rating > 0 %}
+                        <span class="stars">
+                            {% for i in range(5) %}
+                                {% if i < item.avg_rating|int %}★{% else %}☆{% endif %}
+                            {% endfor %}
+                        </span>
+                        <span class="rating-text">{{ item.avg_rating }} ({{ item.num_reviews }})</span>
+                    {% else %}
+                        <span class="no-rating">No reviews</span>
+                    {% endif %}
+                </div>
+                <p class="price">₹ {{ item.book.price }}</p>
+                <div class="card-actions">
+                    <a href="{{ url_for('book_detail', book_id=item.book.id) }}" class="btn btn-primary">View</a>
+                    <a href="{{ url_for('remove_from_wishlist', book_id=item.book.id) }}" class="btn btn-danger">Remove</a>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>❤️ Your wishlist is empty.</p>
+            <p>Browse books and click the heart icon to add them to your wishlist!</p>
+            <a href="/" class="btn btn-primary">Browse Books</a>
+        </div>
+    {% endif %}
+</div>
+
+<footer>
+    <p>📚 BookBridge - Your Wishlist</p>
+</footer>
+
+</body>
+</html>

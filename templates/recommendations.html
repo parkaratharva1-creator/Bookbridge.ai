@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Recommendations - BookBridge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📚 BookBridge</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/location">📍 By Location</a>
+        <a href="/news">📰 News</a>
+        {% if current_user.is_authenticated %}
+            <a href="/chat">💬 AI Chat</a>
+            <a href="/wishlist">❤️ Wishlist</a>
+            <a href="/conversations">💬 Messages</a>
+            <a href="/profile">👤 Profile</a>
+            <a href="/logout">Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container">
+    <h2>📖 AI-Powered Book Recommendations</h2>
+    
+    <div class="recommendation-intro">
+        <p>Based on your study needs and preferences, we recommend these books!</p>
+    </div>
+    
+    <!-- Popular Subjects -->
+    <div class="subjects-section">
+        <h3>🔥 Popular Subjects</h3>
+        <div class="subject-tags">
+            {% for subject, count in popular_subjects %}
+                <a href="/?subject={{ subject }}" class="subject-tag">
+                    {{ subject }} ({{ count }})
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Recommended Books -->
+    <h3>✨ Recommended For You</h3>
+    
+    {% if books %}
+        <div class="book-grid">
+        {% for item in books %}
+            <div class="card">
+                <div class="card-header">
+                    <span class="badge badge-{{ 'sell' if item.book.type == 'sell' else 'rent' }}">
+                        {{ '💰 Sell' if item.book.type == 'sell' else '📅 Rent' }}
+                    </span>
+                    {% if item.book.subject %}
+                        <span class="subject-badge">{{ item.book.subject }}</span>
+                    {% endif %}
+                </div>
+                {% if item.book.image_url %}
+                <div class="book-image-container">
+                    <img src="{{ url_for('static', filename='uploads/books/' + item.book.image_url) }}" alt="{{ item.book.title }}" class="book-image">
+                </div>
+                {% else %}
+                <div class="book-image-container">
+                    <div class="no-image">📚</div>
+                </div>
+                {% endif %}
+                <h3>{{ item.book.title }}</h3>
+                <p class="author">by {{ item.book.author }}</p>
+                <div class="book-info">
+                    <p>📍 {{ item.book.location }}</p>
+                    {% if item.book.grade %}
+                        <p>🎓 {{ item.book.grade }}</p>
+                    {% endif %}
+                </div>
+                <div class="rating">
+                    {% if item.avg_rating > 0 %}
+                        <span class="stars">
+                            {% for i in range(5) %}
+                                {% if i < item.avg_rating|int %}★{% else %}☆{% endif %}
+                            {% endfor %}
+                        </span>
+                        <span class="rating-text">{{ item.avg_rating }}</span>
+                    {% else %}
+                        <span class="no-rating">No reviews</span>
+                    {% endif %}
+                </div>
+                <p class="price">₹ {{ item.book.price }}</p>
+                <a href="{{ url_for('book_detail', book_id=item.book.id) }}" class="btn btn-primary">View Details</a>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>📚 No recommendations yet. Add some books to get personalized recommendations!</p>
+            <a href="/add" class="btn btn-primary">➕ Add Your Book</a>
+        </div>
+    {% endif %}
+    
+    <!-- Study Tips -->
+    <div class="study-tips">
+        <h3>💡 Study Tips</h3>
+        <ul>
+            <li>Use filters to find books specific to your subject and grade</li>
+            <li>Check reviews before purchasing to ensure quality</li>
+            <li>Use the AI Chat to get study recommendations</li>
+            <li>Compare prices across multiple sellers</li>
+        </ul>
+    </div>
+</div>
+
+<footer>
+    <p>📚 BookBridge - Smart Book Recommendations</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Location Search - BookBridge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📚 BookBridge</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/recommendations">📖 Recommendations</a>
+        <a href="/news">📰 News</a>
+        {% if current_user.is_authenticated %}
+            <a href="/chat">💬 AI Chat</a>
+            <a href="/wishlist">❤️ Wishlist</a>
+            <a href="/conversations">💬 Messages</a>
+            <a href="/profile">👤 Profile</a>
+            <a href="/logout">Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container">
+    <h2>📍 Browse by Location</h2>
+    
+    <!-- City Selection -->
+    <div class="location-filter">
+        <form method="GET" action="/location">
+            <select name="city">
+                <option value="">Select a City</option>
+                {% for city, count in cities %}
+                    <option value="{{ city }}" {% if selected_city == city %}selected{% endif %}>
+                        {{ city }} ({{ count }} books)
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+    
+    {% if selected_city %}
+        <div class="location-header">
+            <h3>📚 Books Available in {{ selected_city }}</h3>
+            <p>Found {{ books|length }} books</p>
+        </div>
+        
+        {% if books %}
+            <div class="book-grid">
+            {% for book in books %}
+                <div class="card">
+                    <div class="card-header">
+                        <span class="badge badge-{{ 'sell' if book.type == 'sell' else 'rent' }}">
+                            {{ '💰 Sell' if book.type == 'sell' else '📅 Rent' }}
+                        </span>
+                        {% if book.subject %}
+                            <span class="subject-badge">{{ book.subject }}</span>
+                        {% endif %}
+                    </div>
+                    {% if book.image_url %}
+                    <div class="book-image-container">
+                        <img src="{{ url_for('static', filename='uploads/books/' + book.image_url) }}" alt="{{ book.title }}" class="book-image">
+                    </div>
+                    {% else %}
+                    <div class="book-image-container">
+                        <div class="no-image">📚</div>
+                    </div>
+                    {% endif %}
+                    <h3>{{ book.title }}</h3>
+                    <p class="author">by {{ book.author }}</p>
+                    <div class="book-info">
+                        <p>📍 {{ book.location }}</p>
+                        {% if book.grade %}
+                            <p>🎓 {{ book.grade }}</p>
+                        {% endif %}
+                    </div>
+                    <p class="price">₹ {{ book.price }}</p>
+                    <a href="{{ url_for('book_detail', book_id=book.id) }}" class="btn btn-primary">View Details</a>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>No books found in this city.</p>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="map-placeholder">
+            <p>🗺️ Select a city above to see available books</p>
+            <div class="city-grid">
+                {% for city, count in cities[:6] %}
+                    <a href="/location?city={{ city }}" class="city-card">
+                        <h4>{{ city }}</h4>
+                        <p>{{ count }} books</p>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<footer>
+    <p>📚 BookBridge - Find Books Near You</p>
+</footer>
+
+</body>
+</html>

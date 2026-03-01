@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Messages - BookBridge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .conversation-list {
+            display: grid;
+            gap: 15px;
+        }
+        .conversation-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .conversation-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+        .conversation-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .conversation-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .conversation-info {
+            flex: 1;
+        }
+        .conversation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .conversation-name {
+            font-weight: bold;
+            color: #333;
+        }
+        .conversation-time {
+            color: #999;
+            font-size: 0.85rem;
+        }
+        .conversation-preview {
+            color: #666;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .unread-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-left: 10px;
+        }
+        .conversation-book {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h2>📚 BookBridge</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/chat">🤖 AI Chat</a>
+        <a href="/profile">👤 Profile</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <h2>💬 My Messages</h2>
+    
+    {% if conversations %}
+        <div class="conversation-list">
+        {% for item in conversations %}
+            <a href="{{ url_for('conversation_detail', conversation_id=item.conversation.id) }}" class="conversation-card">
+                <div class="conversation-avatar">
+                    {% if item.other_user.profile_image %}
+                        <img src="{{ url_for('static', filename='uploads/profiles/' + item.other_user.profile_image) }}" alt="{{ item.other_user.username }}">
+                    {% else %}
+                        👤
+                    {% endif %}
+                </div>
+                <div class="conversation-info">
+                    <div class="conversation-header">
+                        <span class="conversation-name">{{ item.other_user.username }}</span>
+                        <span class="conversation-time">{{ item.conversation.updated_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                    <div class="conversation-preview">
+                        {% if item.last_message %}
+                            {% if item.last_message.sender_id == current_user.id %}You: {% endif %}
+                            {{ item.last_message.message[:50] }}...
+                        {% endif %}
+                        {% if item.unread_count > 0 %}
+                            <span class="unread-badge">{{ item.unread_count }} new</span>
+                        {% endif %}
+                    </div>
+                    <div class="conversation-book">
+                        📚 {{ item.conversation.book.title }} - ₹{{ item.conversation.book.price }}
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>💬 No messages yet.</p>
+            <p>When you message a seller about a book, your conversations will appear here.</p>
+            <a href="/" class="btn btn-primary">Browse Books</a>
+        </div>
+    {% endif %}
+</div>
+
+<footer>
+    <p>📚 BookBridge - Messages</p>
+</footer>
+
+</body>
+</html>
