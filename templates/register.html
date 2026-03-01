@@ -32,38 +32,64 @@
             <div class="form-group">
                 {{ form.username.label }}
                 {{ form.username(class="form-control") }}
+                {% if form.username.errors %}
+                    <div class="error">
+                    {% for error in form.username.errors %}
+                        {{ error }}
+                    {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             
             <div class="form-group">
                 {{ form.email.label }}
                 {{ form.email(class="form-control") }}
+                {% if form.email.errors %}
+                    <div class="error">
+                    {% for error in form.email.errors %}
+                        {{ error }}
+                    {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             
             <div class="form-group">
                 {{ form.password.label }}
                 {{ form.password(class="form-control") }}
+                {% if form.password.errors %}
+                    <div class="error">
+                    {% for error in form.password.errors %}
+                        {{ error }}
+                    {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             
             <div class="form-group">
                 {{ form.confirm_password.label }}
                 {{ form.confirm_password(class="form-control") }}
+                {% if form.confirm_password.errors %}
+                    <div class="error">
+                    {% for error in form.confirm_password.errors %}
+                        {{ error }}
+                    {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             
-            <div class="form-row">
-                <div class="form-group">
-                    {{ form.phone.label }}
-                    {{ form.phone(class="form-control") }}
-                </div>
-                
-                <div class="form-group">
-                    {{ form.city.label }}
-                    {{ form.city(class="form-control") }}
-                </div>
+            <div class="form-group">
+                {{ form.phone.label }}
+                {{ form.phone(class="form-control") }}
+            </div>
+            
+            <div class="form-group">
+                {{ form.city.label }}
+                {{ form.city(class="form-control") }}
             </div>
             
             <div class="form-group">
                 {{ form.college.label }}
-                {{ form.college(class="form-control", placeholder="College/School Name") }}
+                {{ form.college(class="form-control") }}
             </div>
             
             {{ form.submit(class="btn btn-primary") }}

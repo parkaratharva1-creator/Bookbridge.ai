@@ -568,18 +568,27 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user and check_password_hash(user.password_hash, form.password.data):
-            if user.is_banned:
-                flash('Your account has been banned. Contact admin.', 'danger')
-                return redirect(url_for('login'))
-            login_user(user)
-            flash('Login successful!', 'success')
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('home'))
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        if not email or not password:
+            flash('Please fill in all fields.', 'danger')
         else:
-            flash('Login failed. Check email and password.', 'danger')
+            user = User.query.filter_by(email=email).first()
+            if user:
+                if check_password_hash(user.password_hash, password):
+                    if user.is_banned:
+                        flash('Your account has been banned. Contact admin.', 'danger')
+                    else:
+                        login_user(user)
+                        flash('Login successful!', 'success')
+                        next_page = request.args.get('next')
+                        return redirect(next_page) if next_page else redirect(url_for('home'))
+                else:
+                    flash('Invalid password. Please try again.', 'danger')
+            else:
+                flash('No account found with this email. Please register first.', 'danger')
     return render_template('login.html', form=form)
 
 @app.route('/logout')
@@ -593,6 +602,14 @@ def logout():
 def profile():
     form = ProfileForm()
     if request.method == 'POST' and form.validate_on_submit():
+        # Check if username already exists (except current user)
+        new_username = form.username.data
+        if new_username != current_user.username:
+            existing_user = User.query.filter_by(username=new_username).first()
+            if existing_user:
+                flash('Username already exists. Please choose a different username.', 'danger')
+                return redirect(url_for('profile'))
+        
         current_user.username = form.username.data
         current_user.phone = form.phone.data
         current_user.city = form.city.data
